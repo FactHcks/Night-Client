@@ -1,0 +1,27 @@
+{
+	"required": true,
+	"package": "me.night.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"MixinClientConnection",
+		"MixinClientPlayerEntity",
+		"MixinClientPlayNetworkHandler",
+		"MixinInGameHud",
+		"MixinKeyboard",
+		"MixinMinecraftClient",
+		"MixinLivingEntityRenderer",
+		"MixinEntityRenderer",
+		"MixinClientPlayerInteractionManager",
+		"MixinButtonWidgetText",
+		"MixinChatHudBackend",
+		"MixinChatHud",
+		"MixinChatScreen",
+		"MinecraftClientAccessor"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}
