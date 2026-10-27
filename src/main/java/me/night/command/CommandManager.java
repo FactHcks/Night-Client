@@ -13,6 +13,7 @@ public class CommandManager {
     public CommandManager() {
         register(new BindCommand());
         register(new ConfigCommand());
+        register(new me.night.command.commands.WaypointCommand());
     }
 
     public void register(Command command) {

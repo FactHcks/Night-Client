@@ -55,20 +55,16 @@ public class Velocity extends Module {
             }
         } else if (explosions.getValue() && event.getPacket() instanceof ExplosionS2CPacket explosion) {
             if (explosion.playerKnockback().isPresent()) {
+                // Keep the packet (particles, sound) and take back the part of the push we don't want.
+                // The game applies the packet on the main thread first, so this runs right after it.
                 double hRatio = horizontal.getValue() / 100.0;
                 double vRatio = vertical.getValue() / 100.0;
-
-                if (hRatio == 0.0 && vRatio == 0.0) {
-                    event.cancel();
-                } else {
-                    event.cancel();
-                    Vec3d kb = explosion.playerKnockback().get();
-                    mc.execute(() -> {
-                        if (mc.player != null) {
-                            mc.player.addVelocity(kb.x * hRatio, kb.y * vRatio, kb.z * hRatio);
-                        }
-                    });
-                }
+                Vec3d kb = explosion.playerKnockback().get();
+                mc.execute(() -> {
+                    if (mc.player != null) {
+                        mc.player.addVelocity(-kb.x * (1 - hRatio), -kb.y * (1 - vRatio), -kb.z * (1 - hRatio));
+                    }
+                });
             }
         }
     }

@@ -22,13 +22,17 @@ public class Killaura extends Module {
     public final NumberProperty range = new NumberProperty("Range", "Attack range in blocks", 3.8, 3.0, 6.0, 0.1);
     public final ModeProperty mode = new ModeProperty("Mode", "Single", "Single", "Switch");
     public final BooleanProperty silentAim = new BooleanProperty("Silent Aim", "Silently rotate packet angles", true);
-    public final BooleanProperty targetMace = new BooleanProperty("Mace Smash", "Smash attacks from air", true);
-    public final BooleanProperty spearCharge = new BooleanProperty("Spear Charge", "Use spear charge attacks", true);
+    public final NumberProperty switchDelay = new NumberProperty("Switch Delay", "Milliseconds before moving to the next target",
+            300, 50, 1000, 10, () -> mode.is("Switch"));
     public final BooleanProperty playersOnly = new BooleanProperty("Players Only", true);
+    public final BooleanProperty pauseInMenus = new BooleanProperty("Pause In Menus", "Don't attack while a menu is open or while eating/using an item", true);
+
+    private int switchIndex = 0;
+    private long lastSwitch = 0;
 
     public Killaura() {
         super("Killaura", "Automatically attacks nearby entities", Category.COMBAT);
-        addProperties(range, mode, silentAim, targetMace, spearCharge, playersOnly);
+        addProperties(range, mode, switchDelay, silentAim, playersOnly, pauseInMenus);
     }
 
     @Override
@@ -56,8 +60,21 @@ public class Killaura extends Module {
                 .toList();
 
         if (!targets.isEmpty()) {
-            LivingEntity target = targets.get(0);
+            LivingEntity target;
+            if (mode.is("Switch") && targets.size() > 1) {
+                long now = System.currentTimeMillis();
+                if (now - lastSwitch >= switchDelay.getValue()) {
+                    switchIndex++;
+                    lastSwitch = now;
+                }
+                target = targets.get(Math.floorMod(switchIndex, targets.size()));
+            } else {
+                target = targets.get(0);
+            }
             currentTarget = target;
+
+            boolean paused = pauseInMenus.getValue()
+                    && (mc.currentScreen instanceof net.minecraft.client.gui.screen.ingame.HandledScreen<?> || mc.player.isUsingItem());
 
             // Silent Aim Rotations
             if (this.silentAim.getValue()) {
@@ -73,7 +90,7 @@ public class Killaura extends Module {
             }
 
             // Attack with cooldown check
-            if (mc.player.getAttackCooldownProgress(0.5F) >= 1.0F) {
+            if (!paused && mc.player.getAttackCooldownProgress(0.5F) >= 1.0F) {
                 if (mc.interactionManager != null) {
                     mc.interactionManager.attackEntity(mc.player, target);
                     mc.player.swingHand(Hand.MAIN_HAND);

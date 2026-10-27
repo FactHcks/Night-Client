@@ -5,31 +5,39 @@ import me.night.event.EventTarget;
 import me.night.event.events.TickEvent;
 import me.night.module.Category;
 import me.night.module.Module;
-import me.night.module.modules.combat.AntiBot;
 import me.night.module.modules.combat.Killaura;
 import me.night.property.properties.BooleanProperty;
+import me.night.property.properties.ModeProperty;
 import me.night.property.properties.NumberProperty;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.BlockPos;
 
-import java.util.Comparator;
-import java.util.stream.StreamSupport;
-
+/**
+ * Circles your Killaura target.
+ * <p>
+ * Instead of overwriting velocity, this only changes the direction your normal movement is
+ * applied in (see MixinEntityMovement), so friction, sprinting, jumping and collisions all
+ * behave exactly like vanilla.
+ */
 public class TargetStrafe extends Module {
+    /** Movement direction (yaw, degrees) while strafing, or null when not strafing. */
+    public static Float strafeYaw = null;
     public static boolean isStrafing = false;
     public static LivingEntity currentStrafeTarget = null;
 
-    public final NumberProperty radius = new NumberProperty("Radius", 2.2, 0.5, 6.0, 0.1);
-    public final NumberProperty range = new NumberProperty("Target Range", 6.0, 3.0, 12.0, 0.5);
-    public final BooleanProperty antiStuck = new BooleanProperty("Anti-Stuck", "Reverse direction when colliding with wall", true);
-    public final BooleanProperty onlySpeed = new BooleanProperty("Only Speed", "Only strafe while Speed module is enabled", false);
+    public final NumberProperty radius = new NumberProperty("Radius", "Distance to keep from the target", 2.5, 0.5, 5.0, 0.1);
+    public final ModeProperty activation = new ModeProperty("Activate", "Moving", "Moving", "Jump Key", "Speed");
+    public final BooleanProperty keyDirection = new BooleanProperty("A/D Direction", "Press A or D to pick which way to circle", true);
+    public final BooleanProperty antiStuck = new BooleanProperty("Anti-Stuck", "Turn around when running into a wall", true);
+    public final BooleanProperty avoidEdges = new BooleanProperty("Avoid Edges", "Turn around instead of walking off ledges or into lava", true);
 
     private int direction = 1;
     private int stuckTicks = 0;
 
     public TargetStrafe() {
-        super("TargetStrafe", "Orbits in a circle around your combat target", Category.MOVEMENT);
-        addProperties(radius, range, antiStuck, onlySpeed);
+        super("TargetStrafe", "Circles around your Killaura target", Category.MOVEMENT);
+        addProperties(radius, activation, keyDirection, antiStuck, avoidEdges);
     }
 
     @Override
@@ -39,97 +47,96 @@ public class TargetStrafe extends Module {
 
     @Override
     protected void onDisable() {
+        stop();
+    }
+
+    private void stop() {
+        strafeYaw = null;
         isStrafing = false;
         currentStrafeTarget = null;
     }
 
-    private LivingEntity findTarget() {
-        if (Killaura.currentTarget != null && Killaura.currentTarget.isAlive() && !AntiBot.isBot(Killaura.currentTarget)) {
-            return Killaura.currentTarget;
-        }
-        if (mc.world != null && mc.player != null) {
-            return StreamSupport.stream(mc.world.getEntities().spliterator(), false)
-                    .filter(e -> e instanceof PlayerEntity && e != mc.player && e.isAlive())
-                    .map(e -> (LivingEntity) e)
-                    .filter(e -> !AntiBot.isBot(e))
-                    .filter(e -> mc.player.distanceTo(e) <= range.getValue())
-                    .min(Comparator.comparingDouble(mc.player::distanceTo))
-                    .orElse(null);
-        }
-        return null;
+    private boolean shouldActivate() {
+        boolean moving = mc.player.input.getMovementInput().lengthSquared() > 0.0001;
+        return switch (activation.getValue()) {
+            case "Jump Key" -> mc.options.jumpKey.isPressed();
+            case "Speed" -> moving && Night.INSTANCE.getModuleManager().getModule(Speed.class).isEnabled();
+            default -> moving;
+        };
     }
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (event.getPhase() != TickEvent.Phase.PRE || mc.player == null || mc.world == null) {
-            isStrafing = false;
+        if (event.getPhase() != TickEvent.Phase.PRE) return;
+        if (mc.player == null || mc.world == null) {
+            stop();
             return;
         }
 
-        Module speedMod = Night.INSTANCE.getModuleManager().getModule(Speed.class);
-        boolean speedActive = speedMod != null && speedMod.isEnabled();
-
-        if (onlySpeed.getValue() && !speedActive) {
-            isStrafing = false;
+        LivingEntity target = Killaura.currentTarget;
+        if (target == null || !target.isAlive() || mc.player.distanceTo(target) > radius.getValue() + 6 || !shouldActivate()) {
+            stop();
             return;
         }
 
-        LivingEntity target = findTarget();
-        currentStrafeTarget = target;
-
-        if (target == null || !target.isAlive() || mc.player.distanceTo(target) > range.getValue()) {
-            isStrafing = false;
-            return;
+        // pick the direction with A / D
+        if (keyDirection.getValue()) {
+            boolean left = mc.options.leftKey.isPressed();
+            boolean right = mc.options.rightKey.isPressed();
+            if (left && !right) direction = 1;
+            if (right && !left) direction = -1;
         }
 
-        boolean hasInput = mc.player.input.getMovementInput().y != 0 || mc.player.input.getMovementInput().x != 0;
-        if (!hasInput && !speedActive) {
-            isStrafing = false;
-            return;
-        }
-
-        isStrafing = true;
-
-        // Anti-stuck direction flipping
-        if (antiStuck.getValue()) {
-            if (mc.player.horizontalCollision) {
-                stuckTicks++;
-                if (stuckTicks >= 2) {
-                    direction = -direction;
-                    stuckTicks = 0;
-                }
-            } else {
+        // turn around after bumping into a wall for a couple of ticks
+        if (antiStuck.getValue() && mc.player.horizontalCollision) {
+            if (++stuckTicks >= 2) {
+                direction = -direction;
                 stuckTicks = 0;
             }
+        } else {
+            stuckTicks = 0;
         }
 
-        double px = mc.player.getX();
-        double pz = mc.player.getZ();
-        double tx = target.getX();
-        double tz = target.getZ();
-
-        double currentAngle = Math.atan2(pz - tz, px - tx);
-        double rad = radius.getValue();
-
-        // Calculate next orbit angle
-        double nextAngle = currentAngle + (direction * 0.28);
-        double destX = tx + rad * Math.cos(nextAngle);
-        double destZ = tz + rad * Math.sin(nextAngle);
-
-        double moveAngle = Math.atan2(destZ - pz, destX - px);
-
-        double moveSpeed = 0.2873;
-        if (speedActive && speedMod instanceof Speed) {
-            Speed spd = (Speed) speedMod;
-            moveSpeed = spd.speed.getValue() * 0.36;
-            if (mc.player.isOnGround()) {
-                mc.player.jump();
+        double[] dest = nextPoint(target, direction);
+        if (avoidEdges.getValue() && !safe(dest[0], dest[1])) {
+            direction = -direction;
+            dest = nextPoint(target, direction);
+            if (!safe(dest[0], dest[1])) {
+                stop(); // both ways are unsafe: leave movement alone
+                return;
             }
         }
 
-        double motionX = Math.cos(moveAngle) * moveSpeed;
-        double motionZ = Math.sin(moveAngle) * moveSpeed;
+        double dx = dest[0] - mc.player.getX();
+        double dz = dest[1] - mc.player.getZ();
+        strafeYaw = (float) Math.toDegrees(Math.atan2(dz, dx)) - 90.0F;
+        isStrafing = true;
+        currentStrafeTarget = target;
+    }
 
-        mc.player.setVelocity(motionX, mc.player.getVelocity().y, motionZ);
+    /** A point a little further along the circle around the target. */
+    private double[] nextPoint(LivingEntity target, int dir) {
+        double tx = target.getX(), tz = target.getZ();
+        double angle = Math.atan2(mc.player.getZ() - tz, mc.player.getX() - tx);
+        double r = radius.getValue();
+        // step along the circle by roughly the distance we move per tick
+        double speed = Math.max(0.2, mc.player.getVelocity().horizontalLength());
+        double step = Math.max(0.08, Math.min(0.9, (speed * 1.6) / r)) * dir;
+        return new double[]{tx + Math.cos(angle + step) * r, tz + Math.sin(angle + step) * r};
+    }
+
+    /** True if standing at (x, z) won't drop us more than 3 blocks or into lava/fire. */
+    private boolean safe(double x, double z) {
+        int bx = (int) Math.floor(x), bz = (int) Math.floor(z);
+        int feet = (int) Math.floor(mc.player.getY());
+        for (int y = feet - 1; y >= feet - 3; y--) {
+            BlockState state = mc.world.getBlockState(new BlockPos(bx, y, bz));
+            if (state.getFluidState().isIn(net.minecraft.registry.tag.FluidTags.LAVA)
+                    || state.isOf(net.minecraft.block.Blocks.FIRE) || state.isOf(net.minecraft.block.Blocks.MAGMA_BLOCK)) {
+                return false;
+            }
+            if (!state.getCollisionShape(mc.world, new BlockPos(bx, y, bz)).isEmpty()) return true;
+        }
+        return !mc.player.isOnGround(); // already in the air: don't block the move
     }
 }

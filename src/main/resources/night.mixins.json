@@ -16,7 +16,8 @@
 		"MixinChatHudBackend",
 		"MixinChatHud",
 		"MixinChatScreen",
-		"MinecraftClientAccessor"
+		"MinecraftClientAccessor",
+		"MixinEntityMovement"
 	],
 	"injectors": {
 		"defaultRequire": 1

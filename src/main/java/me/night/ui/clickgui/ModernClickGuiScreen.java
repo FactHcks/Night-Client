@@ -439,10 +439,27 @@ public class ModernClickGuiScreen extends Screen {
         if (page == Page.MODULES) {
             renderSearchBox(ctx, mouseX, mouseY, hy);
         } else if (page == Page.CONFIGS) {
-            String label = "Open folder";
-            float bw = UiFont.MEDIUM.width(label) + 22;
+            String label = "Folder";
+            float bw = UiFont.MEDIUM.width(label) + 20;
             float bx = gx + W - 16 - bw;
             button(ctx, mouseX, mouseY, label, bx, hy, bw, 22, false, false, false, mx -> ConfigManager.openFolder());
+            float ew = UiFont.MEDIUM.width("Copy code") + 20;
+            bx -= ew + 5;
+            button(ctx, mouseX, mouseY, "Copy code", bx, hy, ew, 22, false, false, false, mx -> {
+                String code = ConfigManager.exportCode();
+                if (code != null && this.client != null) {
+                    this.client.keyboard.setClipboard(code);
+                    configStatus("Share code for your current settings copied", true);
+                }
+            });
+            float iw = UiFont.MEDIUM.width("Import") + 20;
+            bx -= iw + 5;
+            button(ctx, mouseX, mouseY, "Import", bx, hy, iw, 22, true, false, false, mx -> {
+                String clip = this.client != null ? this.client.keyboard.getClipboard() : "";
+                String name = ConfigManager.importCode(clip);
+                if (name != null) configStatus("Imported and loaded as \"" + name + "\"", true);
+                else configStatus("Copy a Night config code first, then press Import", false);
+            });
         }
     }
 
@@ -898,7 +915,11 @@ public class ModernClickGuiScreen extends Screen {
         }
         this.hits.add(new Hit(x, y, fw, fh, true, m -> this.configFocused = true, null, null));
         button(ctx, mouseX, mouseY, "Create", x + fw + 6, y, createW, fh, true, false, true, m -> createConfig());
-        y += fh + 10;
+        y += fh + 6;
+        if (System.currentTimeMillis() - this.statusTime < 4000) {
+            UiFont.SMALL.draw(ctx, this.statusText, x + 2, y, this.statusOk ? 0xFF6BEA97 : 0xFFFF8A98, false);
+        }
+        y += 12;
 
         List<String> configs = ConfigManager.getConfigs();
         if (configs.isEmpty()) {
@@ -946,6 +967,7 @@ public class ModernClickGuiScreen extends Screen {
                 }
             });
             bx -= saveW + 5;
+            float shareW = UiFont.SMALL.width("Share") + 16;
             button(ctx, mouseX, mouseY, "Save", bx, by, saveW, bh, false, false, true, m -> {
                 ConfigManager.saveConfig(name);
                 ExhiSoundManager.playClick(1.1F);
@@ -955,9 +977,28 @@ public class ModernClickGuiScreen extends Screen {
                 ConfigManager.loadConfig(name);
                 ExhiSoundManager.playClick(1.2F);
             });
+            bx -= shareW + 5;
+            button(ctx, mouseX, mouseY, "Share", bx, by, shareW, bh, false, false, true, m -> {
+                String code = ConfigManager.exportCode(name);
+                if (code != null && this.client != null) {
+                    this.client.keyboard.setClipboard(code);
+                    configStatus("Share code for \"" + name + "\" copied", true);
+                }
+            });
             y += rh + 6;
         }
         return y - 6 - start;
+    }
+
+    private String statusText = "";
+    private boolean statusOk = true;
+    private long statusTime = 0;
+
+    private void configStatus(String text, boolean ok) {
+        this.statusText = text;
+        this.statusOk = ok;
+        this.statusTime = System.currentTimeMillis();
+        ExhiSoundManager.playClick(ok ? 1.2F : 0.8F);
     }
 
     private void createConfig() {

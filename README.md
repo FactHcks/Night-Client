@@ -19,6 +19,7 @@ rounded glass panels, real background blur, sharp custom fonts and animations ev
 - Rise-style ClickGUI: categories, search, inline settings, tooltips, draggable and scalable window
 - 17 themes with live previews, plus a custom accent colour
 - Config manager: create, load, save and delete configs in the GUI (auto-saves on close)
+- Share configs as a short code: copy it, send it, and anyone can import it (keybinds and HUD layout stay private)
 - HUD editor: drag every HUD element anywhere, with snapping
 - Aurora shader main menu and an offline account manager
 - Glass restyle for vanilla menus (pause menu, server list, options) and chat
@@ -28,12 +29,15 @@ rounded glass panels, real background blur, sharp custom fonts and animations ev
 - TargetHUD (Killaura target) with player head, animated health and damage trail
 - Keystrokes with CPS, scoreboard, potion effects, armour and durability
 - Toast notifications when modules are toggled
+- Music player: now-playing card with album art, progress and controls (Linux, via `playerctl`)
+- Minimap with terrain shading, players and waypoints
 
 **Render modules**
 - ESP: 2D box, corners or glow outline
 - Nametags: glass tags with health, distance and gear
 - TargetIndicator: animated ring around your Killaura target
 - HitEffects: hit marker and floating damage numbers
+- Waypoints: in-world markers with distance, off-screen arrows and an automatic death waypoint
 - Silent rotations shown on your player model in third person
 
 ## Usage
@@ -48,12 +52,16 @@ rounded glass panels, real background blur, sharp custom fonts and animations ev
 | Move the window | Drag its top bar |
 | Resize the GUI | `Ctrl` + scroll, or Themes → Customize → GUI Scale |
 | Move HUD elements | ClickGUI → HUD Editor (right click an element to reset it) |
+| Control music | Open chat, then click the buttons on the music card |
 
 Chat commands use the `.` prefix:
 
 ```
 .bind <module> <key/none>
 .config <save/load/list/delete> [name]
+.config export [name]        copy a share code to the clipboard
+.config import [code]        import a share code (from the clipboard if no code is given)
+.waypoint <add/remove/list/clear> [name] [x y z]
 ```
 
 ## Building

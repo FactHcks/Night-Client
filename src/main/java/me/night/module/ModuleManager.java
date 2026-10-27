@@ -20,6 +20,9 @@ import me.night.module.modules.render.TargetIndicator;
 import me.night.module.modules.render.Nametags;
 import me.night.module.modules.render.HitEffects;
 import me.night.module.modules.render.Keystrokes;
+import me.night.module.modules.render.MusicPlayer;
+import me.night.module.modules.render.Waypoints;
+import me.night.module.modules.render.Minimap;
 import me.night.module.modules.render.HUD;
 import me.night.module.modules.render.TabGUI;
 import me.night.module.modules.render.TargetHUD;
@@ -54,6 +57,9 @@ public class ModuleManager {
         register(new Nametags());
         register(new HitEffects());
         register(new Keystrokes());
+        register(new MusicPlayer());
+        register(new Waypoints());
+        register(new Minimap());
 
         // Player
         register(new NoFall());

@@ -26,7 +26,6 @@ public class Speed extends Module {
     @EventTarget
     public void onTick(TickEvent event) {
         if (event.getPhase() != TickEvent.Phase.PRE || mc.player == null) return;
-        if (TargetStrafe.isStrafing) return;
 
         double forward = mc.player.input.getMovementInput().y;
         double strafe = mc.player.input.getMovementInput().x;
@@ -73,6 +72,14 @@ public class Speed extends Module {
         double forward = mc.player.input.getMovementInput().y;
         double strafe = mc.player.input.getMovementInput().x;
         float yaw = mc.player.getYaw();
+
+        // while TargetStrafe is circling, push along the circle instead of where we're looking
+        Float strafeYaw = TargetStrafe.strafeYaw;
+        if (strafeYaw != null) {
+            yaw = strafeYaw;
+            forward = 1.0;
+            strafe = 0.0;
+        }
 
         if (forward == 0.0 && strafe == 0.0) {
             mc.player.setVelocity(0.0, mc.player.getVelocity().y, 0.0);

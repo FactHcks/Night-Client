@@ -7,7 +7,7 @@ import java.util.List;
 
 public class ConfigCommand extends Command {
     public ConfigCommand() {
-        super("config", "Saves and loads configuration files including module binds", ".config <save/load/list/delete> [name]", "cfg");
+        super("config", "Saves and loads configuration files including module binds", ".config <save/load/list/delete/export/import> [name|code]", "cfg");
     }
 
     @Override
@@ -76,8 +76,27 @@ public class ConfigCommand extends Command {
                 }
                 break;
 
+            case "export":
+            case "share": {
+                String code = args.length >= 2 ? ConfigManager.exportCode(args[1]) : ConfigManager.exportCode();
+                if (code == null) {
+                    sendMessage("§cCould not export that config.");
+                } else {
+                    net.minecraft.client.MinecraftClient.getInstance().keyboard.setClipboard(code);
+                    sendMessage("Share code copied to clipboard.");
+                }
+                break;
+            }
+
+            case "import": {
+                String code = args.length >= 2 ? args[1] : net.minecraft.client.MinecraftClient.getInstance().keyboard.getClipboard();
+                String name = ConfigManager.importCode(code);
+                sendMessage(name != null ? "Imported config as §c\"" + name + "\"§f and loaded it." : "§cThat isn't a valid Night config code.");
+                break;
+            }
+
             default:
-                sendMessage("§cUnknown subcommand: \"" + sub + "\"! Valid options: save, load, list, delete.");
+                sendMessage("§cUnknown subcommand: \"" + sub + "\"! Valid options: save, load, list, delete, export, import.");
                 break;
         }
     }
