@@ -29,6 +29,7 @@ public class BedNuker extends Module {
     public final BooleanProperty surroundings = new BooleanProperty("Surroundings", "Breaks defense blocks covering bed", true);
     public final BooleanProperty autoTool = new BooleanProperty("Auto Tool", "Selects best mining tool", true);
     public final BooleanProperty silentAim = new BooleanProperty("Silent Aim", "Silently rotates to block face", true);
+    public final ModeProperty moveFix = new ModeProperty("Move Fix", "Strict", () -> silentAim.getValue(), "Off", "Strict", "Silent");
     public final BooleanProperty progressHud = new BooleanProperty("Progress HUD", "Shows Rise 6 style progress card", true);
     public final BooleanProperty esp = new BooleanProperty("ESP", "Highlights target bed", true);
 
@@ -41,7 +42,7 @@ public class BedNuker extends Module {
 
     public BedNuker() {
         super("BedNuker", "Automatically breaks nearby beds and defense blocks", Category.WORLD);
-        addProperties(range, mode, surroundings, autoTool, silentAim, progressHud, esp);
+        addProperties(range, mode, surroundings, autoTool, silentAim, moveFix, progressHud, esp);
     }
 
     @Override
@@ -103,7 +104,7 @@ public class BedNuker extends Module {
                     center.y,
                     center.z
             );
-            RotationManager.setRotations(rots[0], rots[1]);
+            RotationManager.setRotations(rots[0], rots[1], moveFix.getValue());
         }
 
         // Auto Tool selection

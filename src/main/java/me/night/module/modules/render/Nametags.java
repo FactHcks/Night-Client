@@ -93,7 +93,8 @@ public class Nametags extends Module {
 
         Render2D.shadow(ctx, x, y + 1, w, h, 6, 8, 0x50000000);
         Render2D.glass(ctx, x, y, w, h, 6, blur.getValue() ? 0x700C0C12 : 0xB00C0C12, blur.getValue());
-        Render2D.outline(ctx, x, y, w, h, 6, 0.5F, 0x22FFFFFF);
+        boolean isTeam = me.night.module.modules.combat.Teams.isTeammate(p);
+        Render2D.outline(ctx, x, y, w, h, 6, 0.5F, isTeam ? 0x884ADE80 : 0x22FFFFFF);
         if (health.getValue()) {
             int hpCol = ColorUtil.lerp(0xFFFF4D5E, 0xFF4ADE80, ratio);
             Render2D.rect(ctx, x + 4, y + h - 2, (w - 8) * ratio, 1, 0.5F, hpCol);

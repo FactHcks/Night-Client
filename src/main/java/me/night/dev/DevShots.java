@@ -186,11 +186,14 @@ public final class DevShots {
                 if (mc.player == null || mc.currentScreen != null) { ticks = 0; return; }
                 if (ticks == 30) {
                     mc.player.setPitch(18);
-                    for (String n : new String[]{"Sprint", "Velocity", "NoFall", "Keystrokes", "TargetIndicator", "HitEffects"}) {
+                    for (String n : new String[]{"Sprint", "Velocity", "NoFall", "Keystrokes", "TargetIndicator", "HitEffects",
+                            "Animations", "Minimap", "Waypoints", "MusicPlayer"}) {
                         Module m = module(n);
                         if (m != null && !m.isEnabled()) m.setEnabled(true);
                     }
                     setupWorld(mc);
+                    me.night.waypoint.WaypointManager.add("Base", mc.player.getBlockX() + 12, mc.player.getBlockY(), mc.player.getBlockZ() - 6);
+                    me.night.waypoint.WaypointManager.add("Mine", mc.player.getBlockX() - 30, mc.player.getBlockY(), mc.player.getBlockZ() + 40);
                 }
                 if (ticks == 60) Killaura.currentTarget = (net.minecraft.entity.LivingEntity) findPig(mc);
                 if (ticks == 80) {
@@ -201,7 +204,7 @@ public final class DevShots {
                     mc.getToastManager().clear();
                     shot(mc, "03-hud");
                 }
-                if (ticks == 90) { go(30); }
+                if (ticks == 90) { go(4); }
             }
             case 30 -> { // benchmark: 4 phases x 4 seconds
                 if (ticks == 1 && benchPhase == 0) {

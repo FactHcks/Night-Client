@@ -14,6 +14,7 @@ public class CommandManager {
         register(new BindCommand());
         register(new ConfigCommand());
         register(new me.night.command.commands.WaypointCommand());
+        register(new me.night.command.commands.PackConverterCommand());
     }
 
     public void register(Command command) {

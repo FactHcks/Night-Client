@@ -47,6 +47,7 @@ public class Animations extends Module {
     public boolean shouldBlock(ItemStack stack) {
         if (!isSword(stack)) return false;
         if (mc.options.useKey.isPressed()) return true;
+        if (Killaura.isAutoBlocking()) return true;
         return blockOnAura.getValue() && Killaura.currentTarget != null;
     }
 }

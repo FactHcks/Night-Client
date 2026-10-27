@@ -17,9 +17,12 @@
 		"MixinChatHud",
 		"MixinChatScreen",
 		"MinecraftClientAccessor",
+		"IPlayerMoveC2SPacket",
 		"MixinEntityMovement",
 		"MixinHeldItemRenderer",
-		"MixinLivingEntitySwing"
+		"MixinLivingEntitySwing",
+		"MixinLivingEntity",
+		"MixinPackScreen"
 	],
 	"injectors": {
 		"defaultRequire": 1

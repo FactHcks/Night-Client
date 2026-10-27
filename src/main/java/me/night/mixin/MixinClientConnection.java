@@ -14,6 +14,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MixinClientConnection {
     @Inject(method = "send(Lnet/minecraft/network/packet/Packet;)V", at = @At("HEAD"), cancellable = true)
     private void onSendPacket(Packet<?> packet, CallbackInfo ci) {
+        if (me.night.util.PacketUtil.isSilent()) {
+            return;
+        }
         if (Night.INSTANCE != null && Night.INSTANCE.getEventManager() != null) {
             PacketEvent event = new PacketEvent(packet, PacketEvent.Direction.SEND);
             Night.INSTANCE.getEventManager().post(event);

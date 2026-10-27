@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo/logo.png" width="128" alt="Night Client logo"></p>
+
 # Night Client
 
 A modern Fabric client for Minecraft **1.21.11** with a fully GPU-rendered interface: smooth
@@ -31,6 +33,8 @@ rounded glass panels, real background blur, sharp custom fonts and animations ev
 - Toast notifications when modules are toggled
 - Music player: now-playing card with album art, progress and controls (Windows media controls, or `playerctl` on Linux)
 - Minimap with terrain shading, players and waypoints
+- Session stats: kills, deaths, K/D, kill streak and playtime per server, with FPS and ping graphs
+- Discord Rich Presence: shows the server you're on and your session kills/deaths (works with Discord and Vesktop)
 
 **Render modules**
 - ESP: 2D box, corners or glow outline
@@ -67,6 +71,14 @@ Chat commands use the `.` prefix:
 .config import [code]        import a share code (from the clipboard if no code is given)
 .waypoint <add/remove/list/clear> [name] [x y z]
 ```
+
+### Discord Rich Presence setup
+
+Discord shows the status under an application name, so the client needs an application ID:
+
+1. Create an application called "Night Client" at https://discord.com/developers/applications
+2. Under Rich Presence → Art Assets, upload `docs/logo/logo.png` with the key `logo` (also use it as the app icon)
+3. Put the Application ID in `DiscordRPC.APP_ID` (or launch with `-Dnight.discordAppId=<id>`). The official build already has one set.
 
 ## Building
 

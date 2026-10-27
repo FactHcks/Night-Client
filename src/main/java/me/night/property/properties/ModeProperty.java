@@ -12,6 +12,10 @@ public class ModeProperty extends Property<String> {
         this(name, "", defaultMode, Arrays.asList(modes), () -> true);
     }
 
+    public ModeProperty(String name, String defaultMode, Supplier<Boolean> visibility, String... modes) {
+        this(name, "", defaultMode, Arrays.asList(modes), visibility);
+    }
+
     public ModeProperty(String name, String description, String defaultMode, List<String> modes, Supplier<Boolean> visibility) {
         super(name, description, defaultMode, visibility);
         this.modes = modes;

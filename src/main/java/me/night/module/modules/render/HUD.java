@@ -53,7 +53,7 @@ public class HUD extends Module {
 
     public final ModeProperty theme = new ModeProperty("Theme", "", "Night", new java.util.ArrayList<>(THEMES.keySet()), () -> true);
     public final ModeProperty watermarkStyle = new ModeProperty("Watermark Style", "Modern", "Modern", "Card", "Classic");
-    public final ModeProperty arrayListStyle = new ModeProperty("ArrayList Style", "Modern", "Modern", "Classic");
+    public final ModeProperty arrayListStyle = new ModeProperty("ArrayList Style", "Modern", "Modern", "Pills", "Classic");
     public final BooleanProperty watermark = new BooleanProperty("Watermark", true);
     public final BooleanProperty arrayList = new BooleanProperty("ArrayList", true);
     public final BooleanProperty coords = new BooleanProperty("Coords & BPS", true);
@@ -152,6 +152,8 @@ public class HUD extends Module {
 
         if (arrayList.getValue()) {
             if (arrayListStyle.is("Modern")) {
+                drawConnectedArrayList(context);
+            } else if (arrayListStyle.is("Pills")) {
                 drawModernArrayList(context);
             } else {
                 drawClassicArrayList(context);
@@ -332,6 +334,85 @@ public class HUD extends Module {
             if (suffix != null) {
                 float nameW = UiFont.MEDIUM.width(m.getName());
                 UiFont.REGULAR.draw(context, suffix, tx + nameW + 4, UiFont.REGULAR.centerY(ys[k], lineH), 0xFF9A9AAA, false);
+            }
+        }
+        Render2D.resetAlpha();
+    }
+
+    /** One connected block: rows sit flush like steps, with a single gradient bar along the screen edge. */
+    private void drawConnectedArrayList(DrawContext context) {
+        final float lineH = 13;
+        final float barW = 2;
+        boolean bar = rightBar.getValue();
+
+        List<Module> shown = new ArrayList<>();
+        for (Module m : Night.INSTANCE.getModuleManager().getModules()) {
+            if (shouldHide(m)) continue;
+            Anim a = slideAnims.computeIfAbsent(m, k -> new Anim(m.isEnabled() ? 1.0F : 0.0F));
+            a.update(m.isEnabled() ? 1.0F : 0.0F, 13.0F);
+            if (a.get() > 0.005F) shown.add(m);
+        }
+        boolean right = arrayListPos.onRightSide();
+        boolean bottom = arrayListPos.onBottomSide();
+        shown.sort(Comparator.comparingDouble((Module m) -> bottom ? entryTextWidth(m) : -entryTextWidth(m)));
+
+        float edge = bar ? barW : 0;
+        float padIn = 5, padOut = 4;
+        float maxW = 0, totalH = 0;
+        for (Module m : shown) {
+            maxW = Math.max(maxW, entryTextWidth(m) + padIn + padOut + edge);
+            totalH += lineH * Anim.easeOutCubic(slideAnims.get(m).get());
+        }
+        arrayListPos.place(Math.max(40, maxW), Math.max(lineH, totalH));
+        float baseX = arrayListPos.x;
+        float baseY = arrayListPos.y + (bottom ? arrayListPos.h - totalH : 0);
+        float boxW = arrayListPos.w;
+
+        int n = shown.size();
+        if (n == 0) return;
+        float[] xs = new float[n], ys = new float[n], ws = new float[n], fs = new float[n];
+        float cursor = 0;
+        for (int i = 0; i < n; i++) {
+            Module m = shown.get(i);
+            float f = Anim.easeOutCubic(slideAnims.get(m).get());
+            final float target = cursor;
+            float w = entryTextWidth(m) + padIn + padOut + edge;
+            float slide = (1.0F - f) * (w + 8);
+            xs[i] = right ? baseX + boxW - w + slide : baseX - slide;
+            ys[i] = baseY + yAnims.computeIfAbsent(m, k -> new Anim(target)).update(target, 16.0F);
+            ws[i] = w;
+            fs[i] = f;
+            cursor += lineH * f;
+        }
+
+        // rows: square, flush against each other so the list reads as one block
+        for (int k = 0; k < n; k++) {
+            Module m = shown.get(k);
+            int col = Theme.accent(k * 12);
+            float rowX = right ? xs[k] : xs[k] + edge;
+            float rowW = ws[k] - edge;
+            Render2D.setAlpha(fs[k]);
+            Render2D.glass(context, rowX, ys[k], rowW, lineH, 0, 0x990C0C12, blur.getValue());
+            float tx = right ? rowX + padOut : rowX + padIn;
+            if (right) tx = rowX + rowW - padIn - entryTextWidth(m);
+            UiFont.MEDIUM.draw(context, m.getName(), tx, UiFont.MEDIUM.centerY(ys[k], lineH), col, false);
+            String suffix = suffixOf(m);
+            if (suffix != null) {
+                float nameW = UiFont.MEDIUM.width(m.getName());
+                UiFont.REGULAR.draw(context, suffix, tx + nameW + 4, UiFont.REGULAR.centerY(ys[k], lineH), 0xFF9A9AAA, false);
+            }
+        }
+
+        // the side bar runs down the screen edge, fading between each row's colour
+        if (bar) {
+            float bx = right ? baseX + boxW - barW : baseX;
+            for (int k = 0; k < n; k++) {
+                float bh = lineH * fs[k];
+                if (bh < 0.5F) continue;
+                int top = Theme.accent(k * 12), bottomCol = Theme.accent((k + 1) * 12);
+                Render2D.setAlpha(1);
+                if (glow.getValue()) Render2D.shadow(context, bx, ys[k], barW, bh, 0, 5, ColorUtil.withAlpha(top, 0x70));
+                Render2D.rectV(context, bx, ys[k], barW, bh, 0, top, bottomCol);
             }
         }
         Render2D.resetAlpha();

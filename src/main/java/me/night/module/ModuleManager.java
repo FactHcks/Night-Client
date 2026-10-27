@@ -3,13 +3,16 @@ package me.night.module;
 import me.night.event.EventTarget;
 import me.night.event.events.KeyEvent;
 import me.night.module.modules.combat.AntiBot;
+import me.night.module.modules.combat.Criticals;
 import me.night.module.modules.combat.Killaura;
+import me.night.module.modules.combat.Teams;
 import me.night.module.modules.combat.Velocity;
 import me.night.module.modules.movement.Flight;
 import me.night.module.modules.movement.Speed;
 import me.night.module.modules.movement.Sprint;
 import me.night.module.modules.movement.TargetStrafe;
 import me.night.module.modules.player.ChestStealer;
+import me.night.module.modules.player.DiscordRPC;
 import me.night.module.modules.player.FastPlace;
 import me.night.module.modules.player.InvManager;
 import me.night.module.modules.player.NoFall;
@@ -23,6 +26,7 @@ import me.night.module.modules.render.Keystrokes;
 import me.night.module.modules.render.MusicPlayer;
 import me.night.module.modules.render.Waypoints;
 import me.night.module.modules.render.Minimap;
+import me.night.module.modules.render.SessionStats;
 import me.night.module.modules.render.Animations;
 import me.night.module.modules.render.HUD;
 import me.night.module.modules.render.TabGUI;
@@ -41,6 +45,8 @@ public class ModuleManager {
         register(new Killaura());
         register(new Velocity());
         register(new AntiBot());
+        register(new Teams());
+        register(new Criticals());
 
         // Movement
         register(new Sprint());
@@ -61,6 +67,7 @@ public class ModuleManager {
         register(new MusicPlayer());
         register(new Waypoints());
         register(new Minimap());
+        register(new SessionStats());
         register(new Animations());
 
         // Player
@@ -69,6 +76,7 @@ public class ModuleManager {
         register(new PingSpoof());
         register(new ChestStealer());
         register(new InvManager());
+        register(new DiscordRPC());
 
         // World
         register(new Scaffold());

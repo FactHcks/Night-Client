@@ -47,6 +47,7 @@ public class ESP extends Module {
     }
 
     public static int glowColor(net.minecraft.entity.Entity entity) {
+        if (me.night.module.modules.combat.Teams.isTeammate(entity)) return 0xFF4ADE80;
         ESP esp = INSTANCE;
         if (esp.rainbow.getValue()) return esp.getRainbow(entity.getId() * 40, 1.0F) | 0xFF000000;
         if (esp.themeColor.getValue()) return me.night.util.Theme.accent(entity.getId() * 9) | 0xFF000000;
@@ -161,8 +162,11 @@ public class ESP extends Module {
             int y2 = (int) maxY;
 
             int boxColor = rainbow.getValue() ? getRainbow(0, 1.0f) : (color.getRGB() | 0xFF000000);
-
-            if (themeColor.getValue() && !rainbow.getValue()) boxColor = me.night.util.Theme.accent(player.getId() * 9) | 0xFF000000;
+            if (me.night.module.modules.combat.Teams.isTeammate(player)) {
+                boxColor = 0xFF4ADE80;
+            } else if (themeColor.getValue() && !rainbow.getValue()) {
+                boxColor = me.night.util.Theme.accent(player.getId() * 9) | 0xFF000000;
+            }
             if (mode.is("Corner")) {
                 renderCornerBox(context, x1, y1, x2, y2, boxColor);
             } else if (mode.is("2D Box")) {

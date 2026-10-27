@@ -5,6 +5,7 @@ import me.night.event.events.TickEvent;
 import me.night.module.Category;
 import me.night.module.Module;
 import me.night.property.properties.BooleanProperty;
+import me.night.util.RotationManager;
 
 public class Sprint extends Module {
     public final BooleanProperty omni = new BooleanProperty("Omni", "Sprint in all directions", false);
@@ -23,12 +24,13 @@ public class Sprint extends Module {
     @EventTarget
     public void onTick(TickEvent event) {
         if (event.getPhase() == TickEvent.Phase.PRE && mc.player != null) {
+            boolean moveFixMoving = RotationManager.hasRotations() && RotationManager.isMoveFixActive() && RotationManager.isForwardPressed();
             if (omni.getValue()) {
-                if (mc.player.input.getMovementInput().x != 0 || mc.player.input.getMovementInput().y != 0) {
+                if (mc.player.input.getMovementInput().x != 0 || mc.player.input.getMovementInput().y != 0 || moveFixMoving) {
                     mc.player.setSprinting(true);
                 }
             } else {
-                if (mc.player.input.hasForwardMovement() && !mc.player.isSneaking()) {
+                if ((mc.player.input.hasForwardMovement() || moveFixMoving) && !mc.player.isSneaking()) {
                     mc.player.setSprinting(true);
                 }
             }
