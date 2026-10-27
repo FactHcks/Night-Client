@@ -48,7 +48,8 @@ public final class AlbumArt {
         try {
             BufferedImage img;
             if (url.startsWith("file://")) {
-                img = ImageIO.read(new File(URI.create(url)));
+                // the part after "?" only makes each track's url unique
+                img = ImageIO.read(new File(URI.create(url.split("\\?")[0])));
             } else {
                 HttpRequest req = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(8)).build();
                 try (InputStream in = HTTP.send(req, HttpResponse.BodyHandlers.ofInputStream()).body()) {

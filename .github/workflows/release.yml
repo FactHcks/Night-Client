@@ -1,0 +1,36 @@
+# Publishes a GitHub release when a version tag is pushed, e.g.:
+#   git tag v1.1.0 && git push origin v1.1.0
+# The jar is built with the version from the tag and attached to the release.
+
+name: release
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - name: build
+        run: |
+          chmod +x ./gradlew
+          ./gradlew build -Pversion="${GITHUB_REF_NAME#v}"
+          rm -f build/libs/*-sources.jar
+      - name: publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Night Client ${{ github.ref_name }}
+          generate_release_notes: true
+          files: build/libs/night-*.jar

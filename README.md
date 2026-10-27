@@ -29,7 +29,7 @@ rounded glass panels, real background blur, sharp custom fonts and animations ev
 - TargetHUD (Killaura target) with player head, animated health and damage trail
 - Keystrokes with CPS, scoreboard, potion effects, armour and durability
 - Toast notifications when modules are toggled
-- Music player: now-playing card with album art, progress and controls (Linux, via `playerctl`)
+- Music player: now-playing card with album art, progress and controls (Windows media controls, or `playerctl` on Linux)
 - Minimap with terrain shading, players and waypoints
 
 **Render modules**

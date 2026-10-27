@@ -35,7 +35,7 @@ public class MusicPlayer extends Module {
     private final Anim show = new Anim(0);
 
     public MusicPlayer() {
-        super("MusicPlayer", "Shows the song playing on your computer (Linux, uses playerctl)", Category.RENDER);
+        super("MusicPlayer", "Shows the song playing on your computer (Linux and Windows)", Category.RENDER);
         addProperties(art, visualizer, pos.px, pos.py);
         INSTANCE = this;
     }
@@ -81,7 +81,7 @@ public class MusicPlayer extends Module {
         for (int i = 0; i < 3; i++) buttons[i] = null;
         if (s < 0.01F) return;
 
-        String title = track != null ? track.title() : MediaSession.available() ? "Nothing playing" : "Needs playerctl (Linux)";
+        String title = track != null ? track.title() : MediaSession.available() ? "Nothing playing" : "Media info unavailable";
         String artist = track != null ? (track.artist().isBlank() ? "Unknown artist" : track.artist()) : "Music player";
         boolean playing = track != null && track.playing();
 

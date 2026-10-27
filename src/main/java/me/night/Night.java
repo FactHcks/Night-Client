@@ -14,7 +14,9 @@ import org.slf4j.LoggerFactory;
 public class Night implements ModInitializer {
     public static final String MOD_ID = "night";
     public static final String CLIENT_NAME = "Night Client";
-    public static final String CLIENT_VERSION = "1.0.0";
+    /** Version from fabric.mod.json (set by the build / release tag). */
+    public static final String CLIENT_VERSION = net.fabricmc.loader.api.FabricLoader.getInstance()
+            .getModContainer("night").map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("dev");
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     public static Night INSTANCE;
