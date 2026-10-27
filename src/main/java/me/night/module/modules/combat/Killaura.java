@@ -21,6 +21,9 @@ public class Killaura extends Module {
 
     public final NumberProperty range = new NumberProperty("Range", "Attack range in blocks", 3.8, 3.0, 6.0, 0.1);
     public final ModeProperty mode = new ModeProperty("Mode", "Single", "Single", "Switch");
+    public final ModeProperty attackMode = new ModeProperty("Attack Mode", "Auto", "Auto", "Cooldown", "CPS");
+    public final NumberProperty cps = new NumberProperty("CPS", "Attacks per second for 1.8-style combat",
+            10, 1, 20, 1, () -> !attackMode.is("Cooldown"));
     public final BooleanProperty silentAim = new BooleanProperty("Silent Aim", "Silently rotate packet angles", true);
     public final NumberProperty switchDelay = new NumberProperty("Switch Delay", "Milliseconds before moving to the next target",
             300, 50, 1000, 10, () -> mode.is("Switch"));
@@ -29,15 +32,32 @@ public class Killaura extends Module {
 
     private int switchIndex = 0;
     private long lastSwitch = 0;
+    private long nextAttack = 0;
+
+    /**
+     * 1.9+ servers have an attack cooldown, so attacking when it's full does the most damage.
+     * 1.8 servers (through ViaFabricPlus) have no cooldown, so attacks are timed by CPS instead.
+     */
+    private boolean useCps() {
+        return attackMode.is("CPS") || (attackMode.is("Auto") && me.night.util.ServerVersion.isLegacy());
+    }
+
+    private boolean readyToAttack() {
+        if (!useCps()) return mc.player.getAttackCooldownProgress(0.5F) >= 1.0F;
+        long now = System.currentTimeMillis();
+        if (now < nextAttack) return false;
+        nextAttack = now + Math.round(1000.0 / cps.getValue());
+        return true;
+    }
 
     public Killaura() {
         super("Killaura", "Automatically attacks nearby entities", Category.COMBAT);
-        addProperties(range, mode, switchDelay, silentAim, playersOnly, pauseInMenus);
+        addProperties(range, mode, switchDelay, attackMode, cps, silentAim, playersOnly, pauseInMenus);
     }
 
     @Override
     public String getSuffix() {
-        return mode.getValue();
+        return useCps() ? mode.getValue() + " " + cps.getInt() + " CPS" : mode.getValue();
     }
 
     @Override
@@ -90,7 +110,7 @@ public class Killaura extends Module {
             }
 
             // Attack with cooldown check
-            if (!paused && mc.player.getAttackCooldownProgress(0.5F) >= 1.0F) {
+            if (!paused && readyToAttack()) {
                 if (mc.interactionManager != null) {
                     mc.interactionManager.attackEntity(mc.player, target);
                     mc.player.swingHand(Hand.MAIN_HAND);

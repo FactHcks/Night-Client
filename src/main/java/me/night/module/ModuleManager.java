@@ -23,6 +23,7 @@ import me.night.module.modules.render.Keystrokes;
 import me.night.module.modules.render.MusicPlayer;
 import me.night.module.modules.render.Waypoints;
 import me.night.module.modules.render.Minimap;
+import me.night.module.modules.render.Animations;
 import me.night.module.modules.render.HUD;
 import me.night.module.modules.render.TabGUI;
 import me.night.module.modules.render.TargetHUD;
@@ -60,6 +61,7 @@ public class ModuleManager {
         register(new MusicPlayer());
         register(new Waypoints());
         register(new Minimap());
+        register(new Animations());
 
         // Player
         register(new NoFall());

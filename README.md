@@ -39,6 +39,10 @@ rounded glass panels, real background blur, sharp custom fonts and animations ev
 - HitEffects: hit marker and floating damage numbers
 - Waypoints: in-world markers with distance, off-screen arrows and an automatic death waypoint
 - Silent rotations shown on your player model in third person
+- Animations: 1.7 / 1.8 sword blocking (block-hitting), 1.8 item positions, no cooldown dip, swing speed
+
+**1.8.9 servers** (join with [ViaFabricPlus](https://modrinth.com/mod/viafabricplus))
+- Killaura attack mode "Auto" detects 1.8 servers and attacks by CPS instead of waiting for the 1.9+ cooldown
 
 ## Usage
 

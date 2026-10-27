@@ -17,7 +17,9 @@
 		"MixinChatHud",
 		"MixinChatScreen",
 		"MinecraftClientAccessor",
-		"MixinEntityMovement"
+		"MixinEntityMovement",
+		"MixinHeldItemRenderer",
+		"MixinLivingEntitySwing"
 	],
 	"injectors": {
 		"defaultRequire": 1
